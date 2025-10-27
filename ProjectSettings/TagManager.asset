@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 3
+  tags:
+  - Bus
+  - ParkingZone
+  - DoorLeft
+  - DoorRight
+  - Boat
+  - Fuel
+  - Collection
+  - Food
+  - Water
+  - Medkit
+  - During_NPC_Indicator
+  - During_Pet_Indicator
+  - Pet
+  - NPC_Before
+  - Car
+  - Building
+  - Debris
+  - WrongStreetOverlay
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - 
+  - Water
+  - UI
+  - NPC
+  - Pet
+  - ParkingZone
+  - MinimapONLY
+  - Car
+  - Before_Walkable
+  - Building
+  - notseen
+  - AllAreaWalkable
+  - Road
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  m_RenderingLayers:
+  - Default
