@@ -49,9 +49,9 @@ public class ResultsPanel : MonoBehaviour
 
         // ✅ Stars based on time
         int stars = 1; // default
-        if (time <= 180f)       // 3 minutes
+        if (time <= 240f)       
             stars = 3;
-        else if (time <= 240f)  // 4 minutes
+        else if (time <= 300f) 
             stars = 2;
 
         // Hide all stars first
