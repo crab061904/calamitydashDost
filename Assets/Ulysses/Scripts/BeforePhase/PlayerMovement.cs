@@ -20,7 +20,12 @@ public class PlayerMovement : MonoBehaviour
     {
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();
-        rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+
+        // Freeze ALL rotations and use only manual rotation
+        rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
+
+        // Also ensure we're not using physics for rotation
+        rb.freezeRotation = true;
     }
 
     void Update()
@@ -36,41 +41,35 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleInput()
     {
-        float horizontal = Input.GetAxis("Horizontal");
-        float vertical = Input.GetAxis("Vertical");
+        float horizontal = Input.GetAxisRaw("Horizontal");
+        float vertical = Input.GetAxisRaw("Vertical");
 
-        // ✅ Prevent fast diagonal movement
-        moveDirection = new Vector3(horizontal, 0f, vertical).normalized;
+        Vector3 input = new Vector3(horizontal, 0f, vertical);
+        if (input.magnitude < 0.1f)
+        {
+            moveDirection = Vector3.zero;
+            return;
+        }
+
+        moveDirection = input.normalized;
     }
 
     private void HandleMovement()
     {
-        if (moveDirection.magnitude >= 0.1f)
+        if (moveDirection != Vector3.zero)
         {
             bool isRunning = Input.GetKey(KeyCode.LeftShift);
             float currentSpeed = isRunning ? runSpeed : walkSpeed;
 
-            // ✅ Move smoothly
+            // Move smoothly
             Vector3 targetPosition = rb.position + moveDirection * currentSpeed * Time.fixedDeltaTime;
             rb.MovePosition(targetPosition);
 
-            // ------------------------------------
-            // THE FIX: Enforce Y-axis rotation only
-            // ------------------------------------
-
-            // 1. Calculate the raw target rotation (this is the one that might have X/Z rotation)
-            Quaternion rawTargetRotation = Quaternion.LookRotation(moveDirection);
-
-            // 2. Extract the Euler angles, specifically the Y-rotation (Yaw)
-            Vector3 eulerAngles = rawTargetRotation.eulerAngles;
-
-            // 3. Create a new, clean rotation using ONLY the Y-rotation. 
-            //    X and Z are explicitly set to 0 (no pitch or roll).
-            Quaternion flatTargetRotation = Quaternion.Euler(0f, eulerAngles.y, 0f);
-
-            // 4. Apply the smooth rotation using the flat quaternion
-            rb.rotation = Quaternion.Slerp(rb.rotation, flatTargetRotation, rotationSpeed * Time.fixedDeltaTime);
+            // Rotate only when we have valid movement - use transform.rotation instead of rb.rotation
+            Quaternion targetRotation = Quaternion.LookRotation(moveDirection, Vector3.up);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime);
         }
+        // When moveDirection is zero, no rotation occurs
     }
 
     private void HandleAnimation()
@@ -80,7 +79,7 @@ public class PlayerMovement : MonoBehaviour
         if (moveDirection.magnitude >= 0.1f)
         {
             bool isRunning = Input.GetKey(KeyCode.LeftShift);
-            targetSpeed = isRunning ? 1f : 0.5f; // ✅ 0 = idle, 0.5 = walk, 1 = run
+            targetSpeed = isRunning ? 1f : 0.5f;
         }
 
         animator.SetFloat("Speed", targetSpeed, animationDampTime, Time.deltaTime);
