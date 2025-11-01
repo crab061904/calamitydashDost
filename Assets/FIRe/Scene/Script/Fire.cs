@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro; // <-- TextMeshPro namespace
 
 public class Fire : MonoBehaviour
 {
@@ -9,8 +10,8 @@ public class Fire : MonoBehaviour
     private float[] startIntensities = new float[0];
     [SerializeField] private ParticleSystem[] fireParticleSystems = new ParticleSystem[0];
 
-    public bool isLit = false;       // true = burning
-    private bool isExtinguished = false; // true = permanently put out
+    public bool isLit = false;
+    private bool isExtinguished = false;
 
     [Header("Extinguish Settings")]
     private float timeLastWatered = 0f;
@@ -24,6 +25,11 @@ public class Fire : MonoBehaviour
     private HashSet<Fire> pendingSpreads = new HashSet<Fire>();
     private Rigidbody rb;
     private Collider col;
+
+    [Header("Health UI")]
+    [SerializeField] private Canvas healthCanvas;   // world-space canvas
+    [SerializeField] private TMP_Text healthText;   // TextMeshPro text
+    [SerializeField] private int maxHealth = 100;
 
     private void Awake()
     {
@@ -58,12 +64,21 @@ public class Fire : MonoBehaviour
             if (!isLit)
                 fireParticleSystems[i].Stop();
         }
+
+        if (healthCanvas != null)
+            healthCanvas.gameObject.SetActive(isLit);
+
+        UpdateHealthUI();
     }
 
     private void Update()
     {
-        // Do nothing if permanently extinguished
-        if (isExtinguished) return;
+        if (isExtinguished)
+        {
+            if (healthCanvas != null)
+                healthCanvas.gameObject.SetActive(false);
+            return;
+        }
 
         // Fire builds up if lit
         if (isLit && currentIntensity < 1.0f)
@@ -80,29 +95,34 @@ public class Fire : MonoBehaviour
             currentIntensity = Mathf.Clamp01(currentIntensity);
             ChangeIntensity();
         }
+
+        UpdateHealthUI();
     }
 
     public bool TryExtinguish(float amount)
     {
-        if (isExtinguished) return false; // already dead, ignore
+        if (isExtinguished) return false;
 
         timeLastWatered = Time.time;
         currentIntensity -= amount;
         currentIntensity = Mathf.Clamp01(currentIntensity);
 
         ChangeIntensity();
+        UpdateHealthUI();
 
         if (currentIntensity <= 0f)
         {
             isLit = false;
-            isExtinguished = true; // 🔥 permanently gone
+            isExtinguished = true;
 
             foreach (var ps in fireParticleSystems)
                 ps.Stop();
 
-            Debug.Log($"Fire '{name}': fully extinguished and will not regenerate.");
+            if (healthCanvas != null)
+                healthCanvas.gameObject.SetActive(false);
 
-            // ✅ Notify GameManagerFire when this fire is extinguished
+            Debug.Log($"Fire '{name}': fully extinguished.");
+
             if (GameManagerFire.Instance != null)
                 GameManagerFire.Instance.FireExtinguished();
 
@@ -114,12 +134,12 @@ public class Fire : MonoBehaviour
 
     public void Ignite()
     {
-        if (isExtinguished) return; // can’t reignite extinguished fire
+        if (isExtinguished) return;
 
         if (!isLit)
         {
             isLit = true;
-            currentIntensity = 0f;
+            currentIntensity = 1f;
             ChangeIntensity();
 
             foreach (var ps in fireParticleSystems)
@@ -127,6 +147,9 @@ public class Fire : MonoBehaviour
                 if (!ps.isPlaying)
                     ps.Play();
             }
+
+            if (healthCanvas != null)
+                healthCanvas.gameObject.SetActive(true);
         }
     }
 
@@ -141,6 +164,25 @@ public class Fire : MonoBehaviour
                 fireParticleSystems[i].Stop();
             else if (!fireParticleSystems[i].isPlaying)
                 fireParticleSystems[i].Play();
+        }
+    }
+
+    private void UpdateHealthUI()
+    {
+        if (healthText != null)
+        {
+            int health = Mathf.RoundToInt(currentIntensity * maxHealth);
+            healthText.text = $"{health}/{maxHealth}";
+        }
+
+        if (healthCanvas != null)
+            healthCanvas.gameObject.SetActive(isLit && !isExtinguished);
+
+        // Make canvas face camera
+        if (healthCanvas != null && Camera.main != null)
+        {
+            healthCanvas.transform.rotation =
+                Quaternion.LookRotation(healthCanvas.transform.position - Camera.main.transform.position);
         }
     }
 
@@ -179,4 +221,6 @@ public class Fire : MonoBehaviour
             Gizmos.DrawWireSphere(transform.position + sc.center, sc.radius * transform.lossyScale.x);
         }
     }
+
+    public float CurrentIntensity => currentIntensity;
 }

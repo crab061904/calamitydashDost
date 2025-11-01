@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using TMPro;
 
 public class CameraChange : MonoBehaviour
@@ -54,15 +54,17 @@ public class CameraChange : MonoBehaviour
 
     void Update()
     {
-        // Toggle POV
+        // Truck interactions when near truck
         if (isPlayerNearTruck && !isDriving)
         {
+            // Toggle POV while near truck
             if (Input.GetKeyDown(KeyCode.E))
             {
                 CamMode = (CamMode == 0) ? 1 : 0;
                 SetCameraMode(CamMode);
             }
 
+            // Enter truck
             if (Input.GetKeyDown(KeyCode.F))
                 EnterTruck();
         }
@@ -117,12 +119,21 @@ public class CameraChange : MonoBehaviour
         isDriving = true;
         lastPlayerCamMode = CamMode;
 
-        // Cameras
-        if (CarCam != null) CarCam.SetActive(true);
+        // Disable all player cameras first
         if (ThirdCam != null) ThirdCam.SetActive(false);
         if (FirstCam != null) FirstCam.SetActive(false);
         if (PlayerCam != null) PlayerCam.SetActive(false);
+        
+        // Enable truck cameras
+        if (CarCam != null) CarCam.SetActive(true);
         if (TruckCam != null) TruckCam.SetActive(true);
+
+        // Ensure at least one camera is active
+        if (!AnyCameraActive())
+        {
+            Debug.LogWarning("No camera active after entering truck! Enabling CarCam.");
+            if (CarCam != null) CarCam.SetActive(true);
+        }
 
         // Movement / hose
         if (Firstmovement != null) Firstmovement.enabled = false;
@@ -141,31 +152,49 @@ public class CameraChange : MonoBehaviour
         if (drivingAudio != null && !drivingAudio.isPlaying)
             drivingAudio.Play();
 
-        Debug.Log("🚗 Entered truck");
+        Debug.Log("🚗 Entered truck - Camera mode: " + (CarCam != null && CarCam.activeSelf ? "CarCam" : "TruckCam"));
     }
 
     private void ExitTruck()
     {
         isDriving = false;
 
+        // Disable truck cameras first
         if (CarCam != null) CarCam.SetActive(false);
-        SetCameraMode(lastPlayerCamMode);
         if (TruckCam != null) TruckCam.SetActive(false);
+        
+        // Restore player camera mode
+        SetCameraMode(lastPlayerCamMode);
         if (PlayerCam != null) PlayerCam.SetActive(true);
+
+        // Ensure at least one camera is active
+        if (!AnyCameraActive())
+        {
+            Debug.LogWarning("No camera active after exiting truck! Enabling ThirdCam.");
+            if (ThirdCam != null) ThirdCam.SetActive(true);
+            CamMode = 0; // Reset to third person
+        }
 
         // Prompt text
         if (promptTextObject != null)
         {
-            promptTextObject.SetActive(true);
-            TMP_Text tmp = promptTextObject.GetComponent<TMP_Text>();
-            if (tmp != null) tmp.text = defaultPromptText;
+            if (isPlayerNearTruck)
+            {
+                promptTextObject.SetActive(true);
+                TMP_Text tmp = promptTextObject.GetComponent<TMP_Text>();
+                if (tmp != null) tmp.text = defaultPromptText;
+            }
+            else
+            {
+                promptTextObject.SetActive(false);
+            }
         }
 
         // Stop driving audio
         if (drivingAudio != null && drivingAudio.isPlaying)
             drivingAudio.Stop();
 
-        Debug.Log("🚶‍♂️ Exited truck");
+        Debug.Log("🚶‍♂️ Exited truck - Camera mode: " + CamMode + " (0=Third, 1=First)");
     }
 
     private void OnTriggerEnter(Collider other)
