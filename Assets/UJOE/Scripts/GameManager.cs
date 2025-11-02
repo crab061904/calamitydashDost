@@ -106,7 +106,7 @@ public class GameManager : MonoBehaviour
             UpdateUI();
 
             if (deliveryMessage != null)
-                StartCoroutine(ShowDeliveryMessage("✅ Box Delivered!"));
+                StartCoroutine(ShowDeliveryMessage("Box Delivered!"));
 
             if (audioManager != null)
                 audioManager.PlayDeliverSound(); // play delivery SFX
