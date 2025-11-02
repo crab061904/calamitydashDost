@@ -60,6 +60,15 @@ public class EnterExitCar : MonoBehaviour
         // Allow car movement
         UnfreezeCar();
 
+        // Start car engine sound if available
+        if (carController.useSounds && carController.carEngineSound != null)
+        {
+            if (!carController.carEngineSound.isPlaying)
+            {
+                carController.carEngineSound.Play();
+            }
+        }
+
         Debug.Log("Entered car");
     }
 
@@ -76,6 +85,12 @@ public class EnterExitCar : MonoBehaviour
         // Disable car driving and car camera
         carController.enabled = false;
         carCamera.enabled = false;
+
+        // Stop car engine sound
+        if (carController.carEngineSound != null && carController.carEngineSound.isPlaying)
+        {
+            carController.carEngineSound.Stop();
+        }
 
         // Reset camera back to player
         if (playerCameraChange != null)

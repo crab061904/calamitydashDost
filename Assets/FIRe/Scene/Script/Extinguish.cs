@@ -1,9 +1,12 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class HoseController : MonoBehaviour
 {
     [Header("Water Particles")]
     [SerializeField] private ParticleSystem waterParticles;
+    
+    [Header("Water Audio")]
+    [SerializeField] private AudioSource waterAudioSource;
 
     [Header("Extinguishing Settings")]
     [SerializeField] private float extinguishRate = 0.5f;
@@ -50,7 +53,15 @@ public class HoseController : MonoBehaviour
         if (Input.GetMouseButton(0))
         {
             if (!waterParticles.isPlaying)
+            {
                 waterParticles.Play();
+                
+                // Start water audio
+                if (waterAudioSource != null && !waterAudioSource.isPlaying)
+                {
+                    waterAudioSource.Play();
+                }
+            }
 
             // Raycast from camera forward
             if (Physics.Raycast(Camera.main.transform.position, Camera.main.transform.forward, out RaycastHit hit, 100f, layerMask))
@@ -65,7 +76,15 @@ public class HoseController : MonoBehaviour
         else
         {
             if (waterParticles.isPlaying)
+            {
                 waterParticles.Stop();
+                
+                // Stop water audio
+                if (waterAudioSource != null && waterAudioSource.isPlaying)
+                {
+                    waterAudioSource.Stop();
+                }
+            }
         }
     }
 }
