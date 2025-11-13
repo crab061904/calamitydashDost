@@ -22,6 +22,8 @@ TagManager:
   - Building
   - Debris
   - WrongStreetOverlay
+  - WoodStack
+  - HouseFix
   layers:
   - Default
   - TransparentFX

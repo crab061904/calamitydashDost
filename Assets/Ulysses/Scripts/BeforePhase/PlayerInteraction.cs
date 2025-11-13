@@ -15,8 +15,17 @@ public class PlayerInteraction : MonoBehaviour
     public GameObject busArrow;
     public GameObject busIcon;
 
-    private bool isDriving = false;
+    [Header("Carrying Wood")]
+    public Transform headCarrySocket; // Empty GameObject on player's head
+    private GameObject currentWood;   // Currently carried wood
+    private int woodCount = 0;
+    public int maxWoodStack = 1;
 
+    [Header("UI")]
+    public GameObject pickUpIndicator;  // UI for "Press E to pick up"
+
+
+    private bool isDriving = false;
     private EvacuationManager evacManager;
 
     private void Start()
@@ -27,15 +36,26 @@ public class PlayerInteraction : MonoBehaviour
         evacManager = FindObjectOfType<EvacuationManager>();
         if (evacManager == null)
             Debug.LogWarning("⚠️ EvacuationManager not found in scene!");
+
+        if (pickUpIndicator != null) pickUpIndicator.SetActive(false);
     }
 
     void Update()
     {
+        UpdateUIIndicators();
+
         // --- BUS INTERACTION ---
         if (Input.GetKeyDown(KeyCode.F))
         {
             if (!isDriving)
             {
+                // Prevent entering bus if carrying wood
+                if (currentWood != null)
+                {
+                    Debug.Log("🚫 Cannot enter bus while carrying wood!");
+                    return;
+                }
+
                 float distance = Vector3.Distance(player.transform.position, bus.transform.position);
                 if (distance <= 7f)
                 {
@@ -47,31 +67,125 @@ public class PlayerInteraction : MonoBehaviour
                 ExitBus();
             }
         }
+
+        // --- E KEY HANDLING ---
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            if (currentWood == null)
+            {
+                TryPickUpWood(); // Pick up from wood stack
+            }
+            else
+            {
+                TryPlaceWood(); // Place at house
+            }
+        }
     }
 
-    // ----------------- BUS -----------------
+    // ----------------- WOOD PICKUP -----------------
+    private void TryPickUpWood()
+    {
+        Collider[] hits = Physics.OverlapSphere(player.transform.position, 2f);
+        foreach (Collider hit in hits)
+        {
+            if (hit.CompareTag("WoodStack"))
+            {
+                WoodStack stack = hit.GetComponent<WoodStack>();
+                if (stack != null && stack.HasPlanks())
+                {
+                    GameObject plank = stack.PickUpPlank();
+                    if (plank != null)
+                    {
+                        // Attach to player's head
+                        plank.transform.SetParent(headCarrySocket);
+                        plank.transform.localPosition = Vector3.zero;
+                        plank.transform.localRotation = Quaternion.identity;
+
+                        // Disable collider for safety
+                        Collider col = plank.GetComponent<Collider>();
+                        if (col) col.enabled = false;
+
+                        currentWood = plank;
+                        woodCount++;
+
+                        Debug.Log("🪵 Picked up wood!");
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    // ----------------- PLACE WOOD -----------------
+    private void TryPlaceWood()
+    {
+        Collider[] hits = Physics.OverlapSphere(player.transform.position, 2f);
+        foreach (Collider hit in hits)
+        {
+            if (hit.CompareTag("HouseFix"))
+            {
+                HouseFix house = hit.GetComponent<HouseFix>();
+                if (house != null && !house.IsFullyRepaired())
+                {
+                    bool placed = house.PlacePlank(currentWood);
+                    if (placed)
+                    {
+                        currentWood = null;
+                        woodCount--;
+                        Debug.Log("✅ Placed wood on house!");
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    // ----------------- INDICATORS -----------------
+    private void UpdateUIIndicators()
+    {
+        bool nearWood = false;
+        bool nearHouse = false;
+
+        Collider[] hits = Physics.OverlapSphere(player.transform.position, 2f);
+        foreach (Collider hit in hits)
+        {
+            if (currentWood == null && hit.CompareTag("WoodStack"))
+            {
+                WoodStack ws = hit.GetComponent<WoodStack>();
+                if (ws != null && ws.HasPlanks())
+                    nearWood = true;
+            }
+
+            if (currentWood != null && hit.CompareTag("HouseFix"))
+            {
+                HouseFix hf = hit.GetComponent<HouseFix>();
+                if (hf != null && !hf.IsFullyRepaired())
+                    nearHouse = true;
+            }
+        }
+
+        if (pickUpIndicator != null)
+            pickUpIndicator.SetActive(nearWood && currentWood == null);
+    }
+
+    // ----------------- BUS SYSTEM -----------------
     void EnterBus()
     {
         isDriving = true;
 
-        // --- Handle rescued pets ---
+        // Handle rescued pets
         PetController[] allPets = FindObjectsOfType<PetController>();
         foreach (var pet in allPets)
         {
-            if (pet != null && pet.IsFollowingPlayer()) // ✅ only rescued/following pets
+            if (pet != null && pet.IsFollowingPlayer())
             {
-                // Increment evacuation manager
-                EvacuationManager manager = FindObjectOfType<EvacuationManager>();
-                if (manager != null)
-                {
-                    manager.AddEvacuatedPet();
-                }
+                if (evacManager != null)
+                    evacManager.AddEvacuatedPet();
 
-                Destroy(pet.gameObject); // ✅ remove pet from scene
+                Destroy(pet.gameObject);
             }
         }
 
-        // --- Usual bus logic ---
         player.SetActive(false);
         bus.GetComponent<BusController>().isPlayerDriving = true;
 
@@ -81,22 +195,18 @@ public class PlayerInteraction : MonoBehaviour
         if (minimapCamera != null)
             minimapCamera.SetTarget(bus.transform, true);
 
-        if (playerArrow != null) playerArrow.SetActive(false);
-        if (busArrow != null) busArrow.SetActive(true);
-        if (busIcon != null) busIcon.SetActive(false);
+        playerArrow?.SetActive(false);
+        busArrow?.SetActive(true);
+        busIcon?.SetActive(false);
     }
 
     void ExitBus()
     {
         isDriving = false;
-
         Vector3 safeExitPos = exitPoint != null ? exitPoint.position : bus.transform.position + bus.transform.right * 2f;
 
-        // ✅ SAFETY CHECK: if exit point is inside obstruction, find alternative
         if (Physics.CheckSphere(safeExitPos, 0.3f, LayerMask.GetMask("Default", "Building", "Obstacle")))
-        {
             safeExitPos = FindSafeExitPosition();
-        }
 
         player.transform.position = safeExitPos;
         player.transform.rotation = exitPoint ? exitPoint.rotation : bus.transform.rotation;
@@ -110,69 +220,37 @@ public class PlayerInteraction : MonoBehaviour
         if (minimapCamera != null)
             minimapCamera.SetTarget(player.transform, false);
 
-        if (playerArrow != null) playerArrow.SetActive(true);
-        if (busArrow != null) busArrow.SetActive(false);
-        if (busIcon != null) busIcon.SetActive(true);
+        playerArrow?.SetActive(true);
+        busArrow?.SetActive(false);
+        busIcon?.SetActive(true);
     }
 
-
-    // ✅ NEW HELPER FUNCTION
     private Vector3 FindSafeExitPosition()
     {
         Vector3[] directions =
         {
-        exitPoint.right * -1f,       // Left (main exit)
-        (exitPoint.right * -1f) + exitPoint.forward,  // Front-left
-        (exitPoint.right * -1f) - exitPoint.forward,  // Back-left
-        exitPoint.right * 1f,        // Right fallback
-        exitPoint.forward * -1f      // Behind bus
-    };
+            exitPoint.right * -1f,
+            (exitPoint.right * -1f) + exitPoint.forward,
+            (exitPoint.right * -1f) - exitPoint.forward,
+            exitPoint.right * 1f,
+            exitPoint.forward * -1f
+        };
 
         foreach (var dir in directions)
         {
             Vector3 testPos = exitPoint.position + dir * 1f;
-
             if (!Physics.CheckSphere(testPos, 0.3f, LayerMask.GetMask("Default", "Building", "Obstacle")))
-            {
                 return testPos;
-            }
         }
 
-        return exitPoint.position + Vector3.up * 1f; // Worst-case fallback (spawn slightly up)
+        return exitPoint.position + Vector3.up * 1f;
     }
 
-    public void DisableControls()
+    public bool HasWood()
     {
-        enabled = false;  // This will stop Update() from running, disabling input
+        return currentWood != null;
     }
 
-    public void EnableControls()
-    {
-        enabled = true;
-    }
-
-
-    private void DestroyFollowingPets()
-    {
-        if (evacManager == null) return;
-
-        // Find all pets in scene
-        PetController[] allPets = FindObjectsOfType<PetController>();
-        foreach (var pet in allPets)
-        {
-            // Check if the pet is following the player
-            if (pet.isActiveAndEnabled && pet.transform != null && pet.transform.parent == null)
-            {
-                // Check if the pet's followTarget is the player
-                var followField = pet.GetType().GetField("followTarget", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                Transform followTarget = (Transform)followField?.GetValue(pet);
-
-                if (followTarget == player.transform)
-                {
-                    evacManager.AddEvacuatedPet(); // Increment counter
-                    Destroy(pet.gameObject);       // Remove from scene
-                }
-            }
-        }
-    }
+    // Public property for easier access
+    public GameObject CurrentWood => currentWood;
 }
