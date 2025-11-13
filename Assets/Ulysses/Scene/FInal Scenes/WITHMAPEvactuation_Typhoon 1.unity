@@ -4198,6 +4198,10 @@ PrefabInstance:
       propertyPath: m_hasFontAssetChanged
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3492245719103598248, guid: f7fe5fba5f1762f4f8269186c94e1af5, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 111.8
+      objectReference: {fileID: 0}
     - target: {fileID: 3596854014731577531, guid: f7fe5fba5f1762f4f8269186c94e1af5, type: 3}
       propertyPath: m_LocalPosition.x
       value: -11.4
@@ -63352,14 +63356,14 @@ RectTransform:
   m_GameObject: {fileID: 948119851}
   m_LocalRotation: {x: 0.6532815, y: -0.27059805, z: 0.27059805, w: 0.6532815}
   m_LocalPosition: {x: 0, y: 0, z: -4.81}
-  m_LocalScale: {x: 9, y: 9, z: 9}
+  m_LocalScale: {x: 10.33, y: 10.33, z: 10.33}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1982624786}
   m_LocalEulerAnglesHint: {x: 90, y: -45, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -305.61, y: -152.5}
+  m_AnchoredPosition: {x: -305.61, y: -150.83}
   m_SizeDelta: {x: 2, y: 2}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &948119853
@@ -89594,8 +89598,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e7a57b7f126f73b40a6ff10896d71a53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
-  walkSpeed: 5
-  runSpeed: 9
+  walkSpeed: 9
+  runSpeed: 12
   rotationSpeed: 9
   animationDampTime: 0.1
 --- !u!95 &1335358990
@@ -95079,13 +95083,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 721fa1f4226c5f6459e11682b294889a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BusController
-  maxMoveSpeed: 15
+  maxMoveSpeed: 20
   accelerationRate: 10
   decelerationRate: 12
   turnSpeed: 55
   isPlayerDriving: 0
   isWaitingForNPCs: 0
-  boostMultiplier: 1.5
+  boostMultiplier: 1.6
   boostAcceleration: 20
   penaltyText: {fileID: 579749810}
   frontLeftMesh: {fileID: 1280209676}
