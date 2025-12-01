@@ -151,6 +151,20 @@ public class PlayerGrowth : MonoBehaviour
         onGrowth?.Invoke(playerLevel);
     }
 
+    public void ApplyPenalty(int amount)
+    {
+        score = Mathf.Max(0, score - amount);
+
+        UpdateUI();
+
+        int prevThresholdIndex = Mathf.Max(0, playerLevel - 2);
+        if (playerLevel > 1 && score < growthThresholds[prevThresholdIndex])
+        {
+            Shrink();
+        }
+    }
+
+
     void UpdateUI()
     {
         if (uiManager != null)
