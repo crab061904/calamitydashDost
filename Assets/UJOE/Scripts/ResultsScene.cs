@@ -45,6 +45,13 @@ public class ResultsScene : MonoBehaviour
             submitScoreButton.onClick.RemoveAllListeners();
             submitScoreButton.onClick.AddListener(SubmitScore);
         }
+        // Enable submit only when name has text
+        if (playerNameInput != null && submitScoreButton != null)
+        {
+            submitScoreButton.interactable = !string.IsNullOrWhiteSpace(playerNameInput.text);
+            playerNameInput.onValueChanged.RemoveAllListeners();
+            playerNameInput.onValueChanged.AddListener(_ => UpdateSubmitInteractable());
+        }
     }
 
     private void ShowResults()
@@ -112,5 +119,11 @@ public class ResultsScene : MonoBehaviour
         if (submitScoreButton != null) submitScoreButton.interactable = false;
         // Optionally give feedback
         if (resultText != null) resultText.text = $"Saved as: {playerName}";
+    }
+
+    private void UpdateSubmitInteractable()
+    {
+        if (submitScoreButton == null || playerNameInput == null) return;
+        submitScoreButton.interactable = !string.IsNullOrWhiteSpace(playerNameInput.text);
     }
 }

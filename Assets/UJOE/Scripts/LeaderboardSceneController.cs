@@ -9,55 +9,83 @@ public class LeaderboardSceneController : MonoBehaviour
     public string resultsSceneName = "ResultsScene"; // Set in Inspector to actual results scene name
     public string mainMenuSceneName = "START MENU";  // Set to your main menu scene name
 
-    [Header("Game Key (optional override)")]
-    public string overrideGameKey; // Leave empty to use GameData.gameName
+    [Header("Game Keys")]
+    [Tooltip("Optional: Force a starting game key. If empty, uses GameData.gameName or first in gameKeys.")]
+    public string overrideGameKey; // Starting key override
+    [Tooltip("Keys for each game (set 4 for four buttons)")]
+    public string[] gameKeys = new string[4];
 
     [Header("UI References")]
     public TMP_Text titleText;
     public TMP_Text[] scoreTexts; // Assign an array of TextMeshPro texts for top entries
     public TMP_Text emptyStateText; // Shown if no scores
     [Header("Dynamic Generation (Optional)")]
-    public Transform entriesParent; // Assign a vertical layout group parent
+    public RectTransform entriesParent; // Assign a UI parent (Vertical Layout Group)
     public GameObject entryPrefab; // Prefab with LeaderboardEntryUI component
     public Color highlightColor = Color.yellow;
     public Color normalColor = Color.white;
 
+    private string currentKey;
+
     private void Start()
     {
-        string key = string.IsNullOrEmpty(overrideGameKey) ? GameData.gameName : overrideGameKey;
+        // Decide starting key
+        currentKey = !string.IsNullOrEmpty(overrideGameKey)
+            ? overrideGameKey
+            : (!string.IsNullOrEmpty(GameData.gameName) ? GameData.gameName : FirstNonEmptyKey());
+
+        RefreshUI();
+    }
+
+    private string FirstNonEmptyKey()
+    {
+        if (gameKeys != null)
+        {
+            foreach (var k in gameKeys)
+            {
+                if (!string.IsNullOrEmpty(k)) return k;
+            }
+        }
+        return "Game"; // fallback label
+    }
+
+    private void RefreshUI()
+    {
+        if (string.IsNullOrEmpty(currentKey)) currentKey = FirstNonEmptyKey();
+
         if (titleText != null)
         {
-            titleText.text = $"Leaderboard - {key}";
+            titleText.text = $"Leaderboard - {currentKey}";
         }
 
-        var entries = UjoeLeaderboardManager.LoadEntries(key);
-        var last = UjoeLeaderboardManager.LoadLastSubmitted(key);
+        var entries = UjoeLeaderboardManager.LoadEntries(currentKey);
+        var last = UjoeLeaderboardManager.LoadLastSubmitted(currentKey);
 
-        if (entries.Count == 0)
+        bool hasAny = entries != null && entries.Count > 0;
+        if (emptyStateText != null) emptyStateText.gameObject.SetActive(!hasAny);
+
+        if (!hasAny)
         {
-            if (emptyStateText != null) emptyStateText.gameObject.SetActive(true);
+            // Hide legacy texts if present
             if (scoreTexts != null)
             {
-                foreach (var t in scoreTexts)
-                {
-                    if (t != null) t.gameObject.SetActive(false);
-                }
+                foreach (var t in scoreTexts) if (t != null) t.gameObject.SetActive(false);
+            }
+            // Clear dynamic children
+            if (entriesParent != null)
+            {
+                for (int i = entriesParent.childCount - 1; i >= 0; i--)
+                    Destroy(entriesParent.GetChild(i).gameObject);
             }
             return;
         }
-        else if (emptyStateText != null)
-        {
-            emptyStateText.gameObject.SetActive(false);
-        }
 
-        // Dynamic path if prefab & parent provided
         if (entryPrefab != null && entriesParent != null)
         {
-            // Clear previous children (editor-friendly)
+            // Dynamic path
             for (int i = entriesParent.childCount - 1; i >= 0; i--)
-            {
                 Destroy(entriesParent.GetChild(i).gameObject);
-            }
+
             for (int i = 0; i < entries.Count; i++)
             {
                 var go = Instantiate(entryPrefab, entriesParent);
@@ -69,7 +97,6 @@ public class LeaderboardSceneController : MonoBehaviour
                 }
                 else
                 {
-                    // Fallback if prefab missing component
                     var text = go.GetComponent<TMP_Text>();
                     if (text != null)
                     {
@@ -78,7 +105,6 @@ public class LeaderboardSceneController : MonoBehaviour
                     }
                 }
             }
-            // Hide legacy array entries if any
             if (scoreTexts != null)
             {
                 foreach (var t in scoreTexts) if (t != null) t.gameObject.SetActive(false);
@@ -105,6 +131,28 @@ public class LeaderboardSceneController : MonoBehaviour
             }
         }
     }
+
+    // Button hooks to switch games
+    public void ShowGameByKey(string key)
+    {
+        if (string.IsNullOrEmpty(key)) return;
+        currentKey = key;
+        RefreshUI();
+    }
+
+    public void ShowGameIndex(int index)
+    {
+        if (gameKeys == null || index < 0 || index >= gameKeys.Length) return;
+        if (string.IsNullOrEmpty(gameKeys[index])) return;
+        currentKey = gameKeys[index];
+        RefreshUI();
+    }
+
+    // Convenience wrappers for Unity buttons without parameters
+    public void ShowGame0() { ShowGameIndex(0); }
+    public void ShowGame1() { ShowGameIndex(1); }
+    public void ShowGame2() { ShowGameIndex(2); }
+    public void ShowGame3() { ShowGameIndex(3); }
 
     // Button: Back to Results
     public void BackToResults()
