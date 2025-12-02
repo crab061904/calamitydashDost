@@ -34,6 +34,8 @@ public class ResultsScene : MonoBehaviour
             resultText.text = $"Stars Earned: {GameData.starCount}/3";
         }
         ShowResults();
+        // Add score to leaderboard
+        UjoeLeaderboardManager.AddScore(GameData.gameName, GameData.score);
     }
 
     private void ShowResults()
@@ -82,5 +84,12 @@ public class ResultsScene : MonoBehaviour
     {
         Time.timeScale = 1f;
         SceneManager.LoadScene("START MENU"); // Replace with your main menu scene name
+    }
+
+    // 📊 Open Leaderboard Scene
+    public void ShowLeaderboard()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("LeaderboardScene"); // Create a scene named "LeaderboardScene" and add LeaderboardSceneController
     }
 }
