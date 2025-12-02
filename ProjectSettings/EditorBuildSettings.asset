@@ -53,6 +53,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Ulysses/Scene/FInal Scenes/WITHMAPEvactuation_Typhoon 1.unity
     guid: 724aa28497bd1084cab1871c93a7c6cd
+  - enabled: 1
+    path: Assets/UJOE/Scene/LeaderboardScene.unity
+    guid: 507a991c4e6edbf44b280afb04fec166
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

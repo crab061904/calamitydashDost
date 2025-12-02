@@ -248,9 +248,10 @@ namespace SlimUI.ModernMenu{
 		}
 
 		public void ExtrasMenu(){
+			// Repurposed: open Leaderboard scene instead of extras submenu
 			playMenu.SetActive(false);
-			if(extrasMenu) extrasMenu.SetActive(true);
 			exitMenu.SetActive(false);
+			SceneManager.LoadScene("LeaderboardScene");
 		}
 
 		public void QuitGame(){
