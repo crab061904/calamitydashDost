@@ -190,4 +190,39 @@ public class UIManager : MonoBehaviour
         warningText.gameObject.SetActive(false);
         warningCoroutine = null;
     }
+
+    // Show temporary warning with custom message
+    public void ShowWarningMessage(string message, Color color, float visibleTime = 0.5f, float fadeTime = 1f)
+    {
+        if (warningText == null) return;
+
+        if (warningCoroutine != null)
+            StopCoroutine(warningCoroutine);
+
+        warningCoroutine = StartCoroutine(ShowWarningCoroutine(message, color, visibleTime, fadeTime));
+    }
+
+    private IEnumerator ShowWarningCoroutine(string message, Color color, float visibleTime, float fadeTime)
+    {
+        warningText.text = message;
+        warningText.color = new Color(color.r, color.g, color.b, 1f); // fully visible
+        warningText.gameObject.SetActive(true);
+
+        // Wait fully visible
+        yield return new WaitForSeconds(visibleTime);
+
+        // Fade out
+        float elapsed = 0f;
+        while (elapsed < fadeTime)
+        {
+            elapsed += Time.deltaTime;
+            float alpha = Mathf.Lerp(1f, 0f, elapsed / fadeTime);
+            warningText.color = new Color(color.r, color.g, color.b, alpha);
+            yield return null;
+        }
+
+        warningText.gameObject.SetActive(false);
+        warningCoroutine = null;
+    }
+
 }

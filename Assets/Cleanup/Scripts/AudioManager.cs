@@ -14,6 +14,8 @@ public class AudioManager : MonoBehaviour
     public AudioClip levelUpSound;
     public AudioClip levelDownSound;
     public AudioClip debrisFailSound;
+    public AudioClip civilianEatSound;
+
 
     void Awake()
     {
@@ -61,4 +63,10 @@ public class AudioManager : MonoBehaviour
         if (sfxSource != null && debrisFailSound != null)
             sfxSource.PlayOneShot(debrisFailSound);
     }
+    public void PlayCivilianEat()
+    {
+        if (sfxSource != null && civilianEatSound != null)
+            sfxSource.PlayOneShot(civilianEatSound);
+    }
+
 }
