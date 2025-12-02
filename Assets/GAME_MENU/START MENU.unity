@@ -14950,7 +14950,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Extras
+  m_text: leaderboards
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 9a203085066bc1949a5ee56336057a20, type: 2}
   m_sharedMaterial: {fileID: -7354776358363926539, guid: 9a203085066bc1949a5ee56336057a20, type: 2}
@@ -14978,8 +14978,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 800
-  m_fontSizeBase: 800
+  m_fontSize: 500
+  m_fontSizeBase: 500
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18

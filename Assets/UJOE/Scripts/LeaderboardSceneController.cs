@@ -16,6 +16,11 @@ public class LeaderboardSceneController : MonoBehaviour
     public TMP_Text titleText;
     public TMP_Text[] scoreTexts; // Assign an array of TextMeshPro texts for top entries
     public TMP_Text emptyStateText; // Shown if no scores
+    [Header("Dynamic Generation (Optional)")]
+    public Transform entriesParent; // Assign a vertical layout group parent
+    public GameObject entryPrefab; // Prefab with LeaderboardEntryUI component
+    public Color highlightColor = Color.yellow;
+    public Color normalColor = Color.white;
 
     private void Start()
     {
@@ -25,9 +30,10 @@ public class LeaderboardSceneController : MonoBehaviour
             titleText.text = $"Leaderboard - {key}";
         }
 
-        List<int> scores = UjoeLeaderboardManager.LoadScores(key);
+        var entries = UjoeLeaderboardManager.LoadEntries(key);
+        var last = UjoeLeaderboardManager.LoadLastSubmitted(key);
 
-        if (scores.Count == 0)
+        if (entries.Count == 0)
         {
             if (emptyStateText != null) emptyStateText.gameObject.SetActive(true);
             if (scoreTexts != null)
@@ -44,17 +50,58 @@ public class LeaderboardSceneController : MonoBehaviour
             emptyStateText.gameObject.SetActive(false);
         }
 
-        for (int i = 0; i < scoreTexts.Length; i++)
+        // Dynamic path if prefab & parent provided
+        if (entryPrefab != null && entriesParent != null)
         {
-            if (scoreTexts[i] == null) continue;
-            if (i < scores.Count)
+            // Clear previous children (editor-friendly)
+            for (int i = entriesParent.childCount - 1; i >= 0; i--)
             {
-                scoreTexts[i].text = $"#{i + 1}: {scores[i]}";
-                scoreTexts[i].gameObject.SetActive(true);
+                Destroy(entriesParent.GetChild(i).gameObject);
             }
-            else
+            for (int i = 0; i < entries.Count; i++)
             {
-                scoreTexts[i].gameObject.SetActive(false);
+                var go = Instantiate(entryPrefab, entriesParent);
+                var ui = go.GetComponent<LeaderboardEntryUI>();
+                bool highlight = last != null && last.name == entries[i].name && last.score == entries[i].score;
+                if (ui != null)
+                {
+                    ui.Setup(i + 1, entries[i].name, entries[i].score, highlight ? highlightColor : normalColor);
+                }
+                else
+                {
+                    // Fallback if prefab missing component
+                    var text = go.GetComponent<TMP_Text>();
+                    if (text != null)
+                    {
+                        text.text = $"#{i + 1}: {entries[i].name} - {entries[i].score}";
+                        text.color = highlight ? highlightColor : normalColor;
+                    }
+                }
+            }
+            // Hide legacy array entries if any
+            if (scoreTexts != null)
+            {
+                foreach (var t in scoreTexts) if (t != null) t.gameObject.SetActive(false);
+            }
+        }
+        else
+        {
+            // Legacy array path
+            for (int i = 0; i < scoreTexts.Length; i++)
+            {
+                if (scoreTexts[i] == null) continue;
+                if (i < entries.Count)
+                {
+                    var e = entries[i];
+                    bool highlight = last != null && last.name == e.name && last.score == e.score;
+                    scoreTexts[i].text = $"#{i + 1}: {e.name} - {e.score}";
+                    scoreTexts[i].color = highlight ? highlightColor : normalColor;
+                    scoreTexts[i].gameObject.SetActive(true);
+                }
+                else
+                {
+                    scoreTexts[i].gameObject.SetActive(false);
+                }
             }
         }
     }

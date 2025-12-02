@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
+using UnityEngine.UI;
 
 public class ResultsScene : MonoBehaviour
 {
@@ -10,6 +11,10 @@ public class ResultsScene : MonoBehaviour
     public TextMeshProUGUI timeRemainingText;
     public TextMeshProUGUI finalScoreText;
     public TextMeshProUGUI achievementsText;
+    [Header("Name Submission")]
+    public TMP_InputField playerNameInput; // Assign in Inspector
+    public Button submitScoreButton; // Assign in Inspector
+    private bool scoreSubmitted;
 
 
     [Header("Star References")]
@@ -34,8 +39,12 @@ public class ResultsScene : MonoBehaviour
             resultText.text = $"Stars Earned: {GameData.starCount}/3";
         }
         ShowResults();
-        // Add score to leaderboard
-        UjoeLeaderboardManager.AddScore(GameData.gameName, GameData.score);
+        // Wait for player to submit name; do not auto-add score.
+        if (submitScoreButton != null)
+        {
+            submitScoreButton.onClick.RemoveAllListeners();
+            submitScoreButton.onClick.AddListener(SubmitScore);
+        }
     }
 
     private void ShowResults()
@@ -91,5 +100,17 @@ public class ResultsScene : MonoBehaviour
     {
         Time.timeScale = 1f;
         SceneManager.LoadScene("LeaderboardScene"); // Create a scene named "LeaderboardScene" and add LeaderboardSceneController
+    }
+
+    // 📝 Called by Submit button
+    public void SubmitScore()
+    {
+        if (scoreSubmitted) return; // Prevent duplicate submissions
+        string playerName = (playerNameInput != null && !string.IsNullOrWhiteSpace(playerNameInput.text)) ? playerNameInput.text.Trim() : "Player";
+        UjoeLeaderboardManager.AddEntry(GameData.gameName, playerName, GameData.score);
+        scoreSubmitted = true;
+        if (submitScoreButton != null) submitScoreButton.interactable = false;
+        // Optionally give feedback
+        if (resultText != null) resultText.text = $"Saved as: {playerName}";
     }
 }
