@@ -157,12 +157,12 @@ public class LeaderboardSceneController : MonoBehaviour
     // Button: Back to Results
     public void BackToResults()
     {
-        SceneManager.LoadScene(resultsSceneName);
+        SceneManager.LoadScene("ResultsScene");
     }
 
     // Button: Go to Main Menu
     public void GoToMainMenu()
     {
-        SceneManager.LoadScene(mainMenuSceneName);
+        SceneManager.LoadScene("START MENU");
     }
 }

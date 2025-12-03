@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
+using UnityEngine.UI;
 
 public class CleanupResultsUI : MonoBehaviour
 {
@@ -8,6 +9,12 @@ public class CleanupResultsUI : MonoBehaviour
     public TextMeshProUGUI finalScoreText;
     public TextMeshProUGUI finalLevelText;
     public TextMeshProUGUI resultText;
+    
+    [Header("Leaderboard Submission")]
+    public TMP_InputField playerNameInput; // assign in Inspector
+    public Button submitScoreButton; // assign in Inspector
+    public Button openLeaderboardButton; // optional
+    private bool scoreSubmitted;
 
     [Header("Star References")]
     public GameObject star1;
@@ -43,6 +50,28 @@ public class CleanupResultsUI : MonoBehaviour
                 default: resultText.text = "Try Again!"; break;
             }
         }
+
+        // Ensure leaderboard key is set for Cleanup
+        if (string.IsNullOrEmpty(GameData.gameName))
+            GameData.gameName = "Recovery"; // or "Cleanup" if you prefer; match Leaderboard gameKeys[3]
+
+        // Wire submit and input behavior
+        if (submitScoreButton != null)
+        {
+            submitScoreButton.onClick.RemoveAllListeners();
+            submitScoreButton.onClick.AddListener(SubmitScore);
+        }
+        if (playerNameInput != null && submitScoreButton != null)
+        {
+            submitScoreButton.interactable = !string.IsNullOrWhiteSpace(playerNameInput.text);
+            playerNameInput.onValueChanged.RemoveAllListeners();
+            playerNameInput.onValueChanged.AddListener(_ => UpdateSubmitInteractable());
+        }
+        if (openLeaderboardButton != null)
+        {
+            openLeaderboardButton.onClick.RemoveAllListeners();
+            openLeaderboardButton.onClick.AddListener(OpenLeaderboard);
+        }
     }
 
     // Button Actions
@@ -59,5 +88,32 @@ public class CleanupResultsUI : MonoBehaviour
     public void ReturnToMainMenu()
     {
         SceneManager.LoadScene("START MENU");
+    }
+
+    // Leaderboard hooks
+    public void SubmitScore()
+    {
+        if (scoreSubmitted) return;
+        string playerName = (playerNameInput != null && !string.IsNullOrWhiteSpace(playerNameInput.text))
+            ? playerNameInput.text.Trim()
+            : "Player";
+
+        UjoeLeaderboardManager.AddEntry(GameData.gameName, playerName, CleanUpGameResults.score);
+
+        scoreSubmitted = true;
+        if (submitScoreButton != null) submitScoreButton.interactable = false;
+        if (resultText != null) resultText.text = $"Saved as: {playerName}";
+    }
+
+    private void UpdateSubmitInteractable()
+    {
+        if (submitScoreButton == null || playerNameInput == null) return;
+        submitScoreButton.interactable = !string.IsNullOrWhiteSpace(playerNameInput.text);
+    }
+
+    public void OpenLeaderboard()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("LeaderboardScene");
     }
 }
