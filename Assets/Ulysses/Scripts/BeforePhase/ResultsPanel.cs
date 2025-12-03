@@ -2,6 +2,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class ResultsPanel : MonoBehaviour
 {
@@ -14,6 +15,12 @@ public class ResultsPanel : MonoBehaviour
     public Image[] starImages; // [0]=1 star, [1]=2 stars, [2]=3 stars
 
     public PauseMenu pauseMenu; // Drag your PauseMenu object in Inspector
+
+    [Header("Leaderboard Submission")]
+    public TMP_InputField playerNameInput; // assign in Inspector
+    public Button submitScoreButton; // assign in Inspector
+    public Button openLeaderboardButton; // optional
+    private bool scoreSubmitted;
 
     private void Awake()
     {
@@ -29,6 +36,10 @@ public class ResultsPanel : MonoBehaviour
         {
             if (img != null) img.gameObject.SetActive(false);
         }
+
+        // Default key for Typhoon before phase (separate)
+        if (string.IsNullOrEmpty(GameData.gameName))
+            GameData.gameName = "Typhoon_Before";
     }
 
     public void ShowResults(int score, float time)
@@ -65,5 +76,44 @@ public class ResultsPanel : MonoBehaviour
         {
             starImages[stars - 1].gameObject.SetActive(true);
         }
+
+        // Wire submission UI when results are shown
+        if (submitScoreButton != null)
+        {
+            submitScoreButton.onClick.RemoveAllListeners();
+            submitScoreButton.onClick.AddListener(() => SubmitScore(score));
+            submitScoreButton.interactable = playerNameInput != null && !string.IsNullOrWhiteSpace(playerNameInput.text);
+        }
+        if (playerNameInput != null)
+        {
+            playerNameInput.onValueChanged.RemoveAllListeners();
+            playerNameInput.onValueChanged.AddListener(_ =>
+            {
+                if (submitScoreButton != null)
+                    submitScoreButton.interactable = !string.IsNullOrWhiteSpace(playerNameInput.text);
+            });
+        }
+        if (openLeaderboardButton != null)
+        {
+            openLeaderboardButton.onClick.RemoveAllListeners();
+            openLeaderboardButton.onClick.AddListener(OpenLeaderboard);
+        }
+    }
+
+    private void SubmitScore(int score)
+    {
+        if (scoreSubmitted) return;
+        string playerName = (playerNameInput != null && !string.IsNullOrWhiteSpace(playerNameInput.text)) ? playerNameInput.text.Trim() : "Player";
+        UjoeLeaderboardManager.AddEntry("Typhoon_Before", playerName, score);
+        scoreSubmitted = true;
+        if (submitScoreButton != null) submitScoreButton.interactable = false;
+        // Optional: show confirmation in timeText if result label not available
+        if (timeText != null) timeText.text += $"\nSaved as: {playerName}";
+    }
+
+    private void OpenLeaderboard()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("LeaderboardScene");
     }
 }

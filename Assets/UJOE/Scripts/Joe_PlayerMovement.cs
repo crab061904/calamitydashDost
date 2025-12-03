@@ -10,7 +10,7 @@ public class Joe_PlayerMovement : MonoBehaviour
     public float rotationSpeed = 10f;
 
     [Header("Animation Settings")]
-    public float animationDampTime = 0.05f; // faster transitions
+    public float animationDampTime = 0.02f; // faster transitions
 
     [Header("Carry Settings")]
     public GameObject[] carryObjects; // Assign box objects in Inspector
@@ -22,7 +22,7 @@ public class Joe_PlayerMovement : MonoBehaviour
     public Animator animator;
 
     [Header("Turn Settings")]
-    public float turnSmoothTime = 0.1f;
+    public float turnSmoothTime = 0.08f;
     private float turnSmoothVelocity;
 
     // Carry state
@@ -64,14 +64,14 @@ public class Joe_PlayerMovement : MonoBehaviour
         if (moveDirection.magnitude >= 0.1f)
         {
             float targetAngle = Mathf.Atan2(moveDirection.x, moveDirection.z) * Mathf.Rad2Deg + Camera.main.transform.eulerAngles.y;
-            float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
-            transform.rotation = Quaternion.Euler(0f, angle, 0f);
+            float smoothedAngle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
+            transform.rotation = Quaternion.Euler(0f, smoothedAngle, 0f);
 
             bool isRunning = Input.GetKey(KeyCode.LeftShift);
             float baseSpeed = isRunning ? runSpeed : walkSpeed;
-
-            // Slow down a bit while carrying
-            float speed = isRunning ? runSpeed : walkSpeed;
+            // Apply carry penalty for speed
+            float carryPenalty = isCarrying ? 0.8f : 1f; // 20% slower when carrying
+            float speed = baseSpeed * carryPenalty;
 
             Vector3 moveDir = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
             controller.Move(moveDir.normalized * speed * Time.deltaTime);
@@ -97,11 +97,16 @@ public class Joe_PlayerMovement : MonoBehaviour
             targetSpeed = 0f;
         }
 
-        // Use smooth blend for normal movement
+        // Use smooth blend for normal movement (snappier)
         animator.SetFloat("Speed", targetSpeed, animationDampTime, Time.deltaTime);
 
-        // Ensure animation state always matches carry state
-        animator.SetBool("isCarrying", isCarrying);
+        // Ensure animation state always matches carry state (instant update)
+        bool currentCarry = animator.GetBool("isCarrying");
+        if (currentCarry != isCarrying)
+        {
+            animator.SetBool("isCarrying", isCarrying);
+            animator.Update(0f);
+        }
     }
 
     // ✅ Pick up a box
@@ -151,9 +156,16 @@ public class Joe_PlayerMovement : MonoBehaviour
     {
         isCarrying = carryCount > 0;
 
-        // Force immediate animator update
+        // Force immediate animator update and slightly damp movement speed
         animator.SetBool("isCarrying", isCarrying);
         animator.Update(0f); // apply change instantly
+
+        // When no boxes, snap back to non-carry pose to avoid visual delay
+        if (!isCarrying)
+        {
+            animator.SetFloat("Speed", 0f);
+            animator.Update(0f);
+        }
 
         Debug.Log("Player is now " + (isCarrying ? "carrying boxes." : "not carrying boxes."));
     }
