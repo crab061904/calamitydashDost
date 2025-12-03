@@ -3,28 +3,29 @@ using UnityEngine;
 public class EnterExitCar : MonoBehaviour
 {
     [Header("References")]
-    public GameObject player;                   // The player GameObject
-    public GameObject car;                      // The car GameObject
-    public Transform carSeat;                   // Where the player sits when entering
-    public CameraChange playerCameraChange;     // Your camera switch script
-    public CarCameraFollow carCamera;           // Car camera follow script
-    public PrometeoCarController carController; // Car control script
+    public GameObject player;                   
+    public GameObject car;                      
+    public Transform carSeat;                   
+    public CameraChange playerCameraChange;     // Reference to your CameraChange script
+    public CarCameraFollow carCamera;           
+    public PrometeoCarController carController; 
 
     [Header("Settings")]
     public KeyCode interactKey = KeyCode.F;
-    public float interactDistance = 3f;         // Distance to enter/exit the car
+    public float interactDistance = 4f;         
 
     private bool isInCar = false;
-    private Rigidbody carRigidbody;             // Reference to the car's Rigidbody
+    private Rigidbody carRigidbody;             
 
     void Start()
     {
         carRigidbody = car.GetComponent<Rigidbody>();
-
-        // Make sure the car starts frozen and controls off
+        
+        // Lock the car in place immediately so it doesn't drift
         FreezeCar();
+        
         carController.enabled = false;
-        carCamera.enabled = false;
+        if (carCamera != null) carCamera.enabled = false;
     }
 
     void Update()
@@ -48,66 +49,70 @@ public class EnterExitCar : MonoBehaviour
     {
         isInCar = true;
 
-        // Move player to the car seat and disable the player model
+        // 1. Switch Cameras FIRST (Before disabling player)
+        if (playerCameraChange != null)
+        {
+            playerCameraChange.EnterTruck();
+        }
+
+        // 2. Move & Disable Player
         player.transform.position = carSeat.position;
         player.transform.rotation = carSeat.rotation;
-        player.SetActive(false);
+        player.SetActive(false); 
 
-        // Enable car control and car camera
+        // 3. Enable Car Scripts
         carController.enabled = true;
-        carCamera.enabled = true;
+        if (carCamera != null) carCamera.enabled = true;
 
-        // Allow car movement
+        // 4. Unlock physics so the car can drive
         UnfreezeCar();
-
-        // Start car engine sound if available
+        
+        // Audio
         if (carController.useSounds && carController.carEngineSound != null)
         {
             if (!carController.carEngineSound.isPlaying)
-            {
                 carController.carEngineSound.Play();
-            }
         }
-
-        Debug.Log("Entered car");
     }
 
     void ExitCar()
     {
         isInCar = false;
 
-        // Position player safely beside the car
+        // 1. Enable Player FIRST
         Vector3 exitPos = carSeat.position + car.transform.right * 2f + Vector3.up * 1f;
         player.transform.position = exitPos;
         player.transform.rotation = Quaternion.LookRotation(car.transform.forward, Vector3.up);
         player.SetActive(true);
 
-        // Disable car driving and car camera
-        carController.enabled = false;
-        carCamera.enabled = false;
-
-        // Stop car engine sound
-        if (carController.carEngineSound != null && carController.carEngineSound.isPlaying)
+        // 2. Switch Cameras Back
+        if (playerCameraChange != null)
         {
-            carController.carEngineSound.Stop();
+            playerCameraChange.ExitTruck();
         }
 
-        // Reset camera back to player
-        if (playerCameraChange != null)
-            playerCameraChange.SetCameraMode(0);
+        // 3. Disable Car Scripts
+        carController.enabled = false;
+        if (carCamera != null) carCamera.enabled = false;
 
-        // Slightly freeze the car to stop motion
+        if (carController.carEngineSound != null && carController.carEngineSound.isPlaying)
+            carController.carEngineSound.Stop();
+
+        // 4. Lock physics again so the player can't push the truck
         FreezeCar();
-
-        Debug.Log("Exited car");
     }
 
+    // --- PHYSICS FIX FOR SLIDING/JUMPING ---
     void FreezeCar()
     {
         if (carRigidbody != null)
         {
-            carRigidbody.constraints = RigidbodyConstraints.FreezeRotationX |
-                                       RigidbodyConstraints.FreezeRotationZ;
+            // FREEZE EVERYTHING: Stops rotation AND sliding (Position X/Z)
+            // This makes the truck act like a solid wall when parked.
+            carRigidbody.constraints = RigidbodyConstraints.FreezeRotation | 
+                                       RigidbodyConstraints.FreezePositionX | 
+                                       RigidbodyConstraints.FreezePositionZ;
+                                       
             carRigidbody.linearDamping = 2f;
             carRigidbody.angularDamping = 3f;
         }
@@ -117,10 +122,10 @@ public class EnterExitCar : MonoBehaviour
     {
         if (carRigidbody != null)
         {
+            // Release all constraints so you can drive
             carRigidbody.constraints = RigidbodyConstraints.None;
             carRigidbody.linearDamping = 0.05f;
             carRigidbody.angularDamping = 0.05f;
         }
     }
 }
-
