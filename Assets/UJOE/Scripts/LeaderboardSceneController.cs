@@ -19,6 +19,9 @@ public class LeaderboardSceneController : MonoBehaviour
     public TMP_Text titleText;
     public TMP_Text[] scoreTexts; // Assign an array of TextMeshPro texts for top entries
     public TMP_Text emptyStateText; // Shown if no scores
+    [Header("Typhoon Labels (Optional)")]
+    public TMP_Text typhoonBeforeLabel; // e.g., "Before Phase"
+    public TMP_Text typhoonDuringLabel; // e.g., "During Phase"
     [Header("Dynamic Generation (Optional)")]
     public RectTransform entriesParent; // Assign a UI parent (Vertical Layout Group)
     public GameObject entryPrefab; // Prefab with LeaderboardEntryUI component
@@ -58,6 +61,83 @@ public class LeaderboardSceneController : MonoBehaviour
             titleText.text = $"Leaderboard - {currentKey}";
         }
 
+        // Special handling: Typhoon shows 6 entries (3 Before + 3 During)
+        if (currentKey == "Typhoon")
+        {
+            var before = UjoeLeaderboardManager.LoadEntries("Typhoon_Before");
+            var during = UjoeLeaderboardManager.LoadEntries("Typhoon_During");
+            bool hasAnyTy = (before != null && before.Count > 0) || (during != null && during.Count > 0);
+            if (emptyStateText != null) emptyStateText.gameObject.SetActive(!hasAnyTy);
+
+            // Show phase labels if provided
+            if (typhoonBeforeLabel != null) typhoonBeforeLabel.gameObject.SetActive(true);
+            if (typhoonDuringLabel != null) typhoonDuringLabel.gameObject.SetActive(true);
+
+            // Legacy array path: first 3 slots = Before, next 3 slots = During
+            if (scoreTexts != null && scoreTexts.Length >= 6)
+            {
+                for (int i = 0; i < 6; i++)
+                {
+                    if (scoreTexts[i] != null) scoreTexts[i].gameObject.SetActive(false);
+                }
+                for (int i = 0; i < 3; i++)
+                {
+                    if (scoreTexts[i] == null) continue;
+                    if (before != null && i < before.Count)
+                    {
+                        var e = before[i];
+                        scoreTexts[i].text = $"#{i + 1}: {e.name} - {e.score}";
+                        scoreTexts[i].color = normalColor;
+                        scoreTexts[i].gameObject.SetActive(true);
+                    }
+                }
+                for (int i = 0; i < 3; i++)
+                {
+                    int idx = 3 + i;
+                    if (scoreTexts[idx] == null) continue;
+                    if (during != null && i < during.Count)
+                    {
+                        var e = during[i];
+                        scoreTexts[idx].text = $"#{i + 1}: {e.name} - {e.score}";
+                        scoreTexts[idx].color = normalColor;
+                        scoreTexts[idx].gameObject.SetActive(true);
+                    }
+                }
+            }
+            else if (entryPrefab != null && entriesParent != null)
+            {
+                // Dynamic generation: create headers and rows
+                for (int i = entriesParent.childCount - 1; i >= 0; i--)
+                    Destroy(entriesParent.GetChild(i).gameObject);
+
+                // Before section
+                if (before != null)
+                {
+                    for (int i = 0; i < Mathf.Min(3, before.Count); i++)
+                    {
+                        var go = Instantiate(entryPrefab, entriesParent);
+                        var ui = go.GetComponent<LeaderboardEntryUI>();
+                        if (ui != null) ui.Setup(i + 1, before[i].name, before[i].score, normalColor);
+                    }
+                }
+                // During section
+                if (during != null)
+                {
+                    for (int i = 0; i < Mathf.Min(3, during.Count); i++)
+                    {
+                        var go = Instantiate(entryPrefab, entriesParent);
+                        var ui = go.GetComponent<LeaderboardEntryUI>();
+                        if (ui != null) ui.Setup(i + 1, during[i].name, during[i].score, normalColor);
+                    }
+                }
+            }
+            return;
+        }
+
+        // Default handling for other keys
+        // Hide typhoon-only labels when not viewing Typhoon
+        if (typhoonBeforeLabel != null) typhoonBeforeLabel.gameObject.SetActive(false);
+        if (typhoonDuringLabel != null) typhoonDuringLabel.gameObject.SetActive(false);
         var entries = UjoeLeaderboardManager.LoadEntries(currentKey);
         var last = UjoeLeaderboardManager.LoadLastSubmitted(currentKey);
 
@@ -127,6 +207,14 @@ public class LeaderboardSceneController : MonoBehaviour
                 else
                 {
                     scoreTexts[i].gameObject.SetActive(false);
+                }
+            }
+            // Ensure indices 3-5 (Typhoon During slots) are hidden for non-Typhoon keys
+            if (scoreTexts != null && scoreTexts.Length >= 6)
+            {
+                for (int idx = 3; idx <= 5; idx++)
+                {
+                    if (scoreTexts[idx] != null) scoreTexts[idx].gameObject.SetActive(false);
                 }
             }
         }
