@@ -2779,7 +2779,7 @@ MonoBehaviour:
   - Typhoon
   - Fire
   - Joe_Rescuing
-  - Recovery
+  - Cleanup
   titleText: {fileID: 0}
   scoreTexts:
   - {fileID: 374425671}
@@ -2789,7 +2789,7 @@ MonoBehaviour:
   entriesParent: {fileID: 384946366}
   entryPrefab: {fileID: 0}
   highlightColor: {r: 1, g: 0.9203187, b: 0, a: 1}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 0.6980392, g: 0.1333333, b: 0.1333333, a: 1}
 --- !u!4 &1501980687
 Transform:
   m_ObjectHideFlags: 0

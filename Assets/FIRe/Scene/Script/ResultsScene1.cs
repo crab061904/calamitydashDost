@@ -26,10 +26,38 @@ public class ResultsSceneFire : MonoBehaviour
     public Button nextButton;
     public Button mainMenuButton;
 
+    [Header("Leaderboard Submission")]
+    public TMP_InputField playerNameInput; // assign in Inspector
+    public Button submitScoreButton; // assign in Inspector
+    public Button openLeaderboardButton; // optional: assign to open leaderboard
+    private bool scoreSubmitted;
+
     private void Start()
     {
         // Display all the results on the screen
         ShowResults();
+
+        // Ensure the correct leaderboard key is set
+        if (string.IsNullOrEmpty(GameData.gameName))
+            GameData.gameName = "Fire";
+
+        // Hook up submission
+        if (submitScoreButton != null)
+        {
+            submitScoreButton.onClick.RemoveAllListeners();
+            submitScoreButton.onClick.AddListener(SubmitScore);
+        }
+        if (playerNameInput != null && submitScoreButton != null)
+        {
+            submitScoreButton.interactable = !string.IsNullOrWhiteSpace(playerNameInput.text);
+            playerNameInput.onValueChanged.RemoveAllListeners();
+            playerNameInput.onValueChanged.AddListener(_ => UpdateSubmitInteractable());
+        }
+        if (openLeaderboardButton != null)
+        {
+            openLeaderboardButton.onClick.RemoveAllListeners();
+            openLeaderboardButton.onClick.AddListener(OpenLeaderboard);
+        }
     }
 
     public void ShowResults()
@@ -123,5 +151,33 @@ public class ResultsSceneFire : MonoBehaviour
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
         SceneManager.LoadScene("START MENU");
+    }
+
+    // --- Leaderboard hooks ---
+    public void SubmitScore()
+    {
+        if (scoreSubmitted) return;
+        string playerName = (playerNameInput != null && !string.IsNullOrWhiteSpace(playerNameInput.text))
+            ? playerNameInput.text.Trim()
+            : "Player";
+
+        // Save name + score under the current game key
+        UjoeLeaderboardManager.AddEntry(GameData.gameName, playerName, GameDataFire.finalScore);
+
+        scoreSubmitted = true;
+        if (submitScoreButton != null) submitScoreButton.interactable = false;
+        if (resultText != null) resultText.text = $"Saved as: {playerName}";
+    }
+
+    private void UpdateSubmitInteractable()
+    {
+        if (submitScoreButton == null || playerNameInput == null) return;
+        submitScoreButton.interactable = !string.IsNullOrWhiteSpace(playerNameInput.text);
+    }
+
+    public void OpenLeaderboard()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("LeaderboardScene");
     }
 }
