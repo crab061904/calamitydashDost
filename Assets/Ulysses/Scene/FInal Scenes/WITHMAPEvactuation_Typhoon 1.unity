@@ -14438,8 +14438,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 217100971}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.3913313, y: -3.1906807e-11, z: 1.7452453e-11, w: 0.9202499}
-  m_LocalPosition: {x: -566.5, y: 66.38299, z: 112.21999}
+  m_LocalRotation: {x: 0.3408318, y: 0.0018027081, z: -0.0006535534, w: 0.94012237}
+  m_LocalPosition: {x: -541.8, y: 31.733, z: 138.4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -44056,12 +44056,12 @@ MonoBehaviour:
   waterText: {fileID: 1839147686}
   medkitText: {fileID: 496386977}
   houseText: {fileID: 967219351}
-  foodNeeded: 2
-  waterNeeded: 1
-  medkitsNeeded: 1
-  npcsNeeded: 4
-  petsNeeded: 2
-  housesToFix: 2
+  foodNeeded: 0
+  waterNeeded: 0
+  medkitsNeeded: 0
+  npcsNeeded: 0
+  petsNeeded: 0
+  housesToFix: 0
   evacArrow: {fileID: 476571641}
   evacExitPoint: {fileID: 788983556}
   npcCheckIcon: {fileID: 285069195}
@@ -86812,8 +86812,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: a16c91ca6a9a60b4596b57635c8a3e71, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -98222,8 +98222,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Button
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9a203085066bc1949a5ee56336057a20, type: 2}
+  m_sharedMaterial: {fileID: -7354776358363926539, guid: 9a203085066bc1949a5ee56336057a20, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -98247,8 +98247,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 15
+  m_fontSizeBase: 15
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -135729,8 +135729,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10911, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: d7b4d635d5ebc2a4c967aed03f5c932c, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4

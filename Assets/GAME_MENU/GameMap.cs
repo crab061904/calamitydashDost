@@ -33,6 +33,13 @@ public class GameMap : MonoBehaviour
         StartCoroutine(LoadSceneAsync("CleanupPhase"));
     }
 
+    // --- Back to Main Menu ---
+    public void LoadMainMenu()
+    {
+        Debug.Log("Main Menu Button Clicked");
+        StartCoroutine(LoadSceneAsync("START MENU"));
+    }
+
 
     IEnumerator LoadSceneAsync(string sceneName)
     {
