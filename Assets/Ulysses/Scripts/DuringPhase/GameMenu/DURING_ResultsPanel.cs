@@ -10,6 +10,7 @@ public class DURING_ResultsPanel : MonoBehaviour
     [Header("UI References")]
     public GameObject panel;
     public TextMeshProUGUI scoreText;     // Shows total score
+    public TextMeshProUGUI resultWordText; // Shows a short word like "Complete", "Game Over", "Nice try!"
     public Image[] starImages;            // 3 separate images: [0]=1 star, [1]=2 stars, [2]=3 stars
 
     public DURING_PauseMenu pauseMenu;
@@ -29,6 +30,13 @@ public class DURING_ResultsPanel : MonoBehaviour
         foreach (var img in starImages)
         {
             if (img != null) img.gameObject.SetActive(false);
+        }
+
+        // Hide the result word text if present
+        if (resultWordText != null)
+        {
+            resultWordText.gameObject.SetActive(false);
+            resultWordText.text = string.Empty;
         }
 
         // Default key for Typhoon during phase (separate)
@@ -65,6 +73,18 @@ public class DURING_ResultsPanel : MonoBehaviour
         if (stars > 0 && stars <= starImages.Length && starImages[stars - 1] != null)
         {
             starImages[stars - 1].gameObject.SetActive(true);
+        }
+
+        // Show a short result word based on performance
+        if (resultWordText != null)
+        {
+            string word = "";
+            if (stars >= 3) word = "Complete!";
+            else if (stars == 2) word = "Nice try!";
+            else word = "Game Over";
+
+            resultWordText.text = word;
+            resultWordText.gameObject.SetActive(true);
         }
 
         // Wire submission (reuse computed totalScore)
