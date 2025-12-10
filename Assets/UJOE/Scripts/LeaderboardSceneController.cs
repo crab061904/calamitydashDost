@@ -242,15 +242,17 @@ public class LeaderboardSceneController : MonoBehaviour
     public void ShowGame2() { ShowGameIndex(2); }
     public void ShowGame3() { ShowGameIndex(3); }
 
-    // Button: Back to Results
-    public void BackToResults()
+    // Button: Back to GameMap
+    public void BackToGameMap()
     {
-        SceneManager.LoadScene("ResultsScene");
+        // This intentionally returns to the scene named "Game Map".
+        SceneManager.LoadScene("Game Map");
     }
 
     // Button: Go to Main Menu
     public void GoToMainMenu()
     {
+        // Use configured `mainMenuSceneName` so it's editable in Inspector
         SceneManager.LoadScene("START MENU");
     }
 }
