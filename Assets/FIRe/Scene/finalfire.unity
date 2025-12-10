@@ -61404,6 +61404,14 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1161027180366157134, guid: a11241640d1d0224396d8ae5e5144494, type: 3}
+      propertyPath: m_RayTracingMode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1161027180366157134, guid: a11241640d1d0224396d8ae5e5144494, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1325682919276930432, guid: a11241640d1d0224396d8ae5e5144494, type: 3}
       propertyPath: m_SizeDelta.x
       value: 1137.706
@@ -61699,6 +61707,14 @@ PrefabInstance:
     - target: {fileID: 8643850541121119436, guid: a11241640d1d0224396d8ae5e5144494, type: 3}
       propertyPath: m_Enabled
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8643850541121119436, guid: a11241640d1d0224396d8ae5e5144494, type: 3}
+      propertyPath: m_IsTrigger
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8643850541121119436, guid: a11241640d1d0224396d8ae5e5144494, type: 3}
+      propertyPath: m_ProvidesContacts
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8825185155480412475, guid: a11241640d1d0224396d8ae5e5144494, type: 3}
       propertyPath: m_LocalPosition.y
