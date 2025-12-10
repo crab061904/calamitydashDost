@@ -5,7 +5,7 @@ public class CleanUpNPCWalker : MonoBehaviour
 {
     public float speed = 2f;
     public Vector3 squareSize = new Vector3(5, 0, 5);
-    public int penaltyAmount = 50;
+    public int penaltyAmount = 5;
     public float rotationSpeed = 5f; // Smooth rotation speed
 
     private Vector3 startPos;
@@ -85,7 +85,7 @@ public class CleanUpNPCWalker : MonoBehaviour
             // Show warning UI
             if (player.uiManager != null)
             {
-                player.uiManager.ShowWarningMessage("-50 AVOID THE CIVILIAN!", Color.red, 0.5f, 1f);
+                player.uiManager.ShowWarningMessage("-5 AVOID THE CIVILIAN!", Color.red, 0.5f, 1f);
             }
 
             // Play civilian eat sound
